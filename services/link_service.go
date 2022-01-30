@@ -1,6 +1,12 @@
 package services
 
-import "github.com/thitiph0n/go-url-shortener/repositories"
+import (
+	"errors"
+	"time"
+
+	"github.com/thitiph0n/go-url-shortener/helpers"
+	"github.com/thitiph0n/go-url-shortener/repositories"
+)
 
 type linkService struct {
 	linkRepo repositories.LinkRepository
@@ -10,18 +16,136 @@ func NewLinkService(linkRepo repositories.LinkRepository) LinkService {
 	return linkService{linkRepo: linkRepo}
 }
 
-func (s linkService) CreateLink(NewLinkRequest) (*LinkResponse, error) {
-	return nil, nil
+func (s linkService) CreateLink(linkRequest NewLinkRequest) (*LinkResponse, error) {
+
+	// check is valid url
+	if helpers.CheckDomainError(linkRequest.Url) {
+		return nil, errors.New("invalid url")
+	}
+
+	// check is link exist
+	exist, err := s.linkRepo.GetByUrl(linkRequest.Url)
+	if err != nil {
+		return nil, err
+	}
+
+	if exist != nil {
+		return &LinkResponse{
+			Url:     exist.Url,
+			LinkId:  exist.LinkId,
+			Clicked: exist.Clicked,
+		}, nil
+	}
+
+	link := repositories.Link{}
+
+	link.Url = linkRequest.Url
+
+	// check type of link
+	if linkRequest.CustomLinkId == "" {
+		link.Type = Generated.String()
+		link.Clicked = 0
+		link.CreatedAt = time.Now().UTC()
+		link.LinkId = helpers.GenerateLinkId(6)
+
+		if s.linkRepo.Create(link) != nil {
+			return nil, errors.New("can't create link")
+		}
+
+		return &LinkResponse{
+			Url:     link.Url,
+			LinkId:  link.LinkId,
+			Clicked: link.Clicked,
+		}, nil
+	}
+
+	link.Type = Custom.String()
+
+	// check custom link is valid
+	if len(linkRequest.CustomLinkId) > 8 {
+		return nil, errors.New("invalid custom link id")
+	}
+
+	// check if custom link is exist
+	if exist, err := s.linkRepo.GetById(linkRequest.CustomLinkId); err != nil && exist != nil {
+		return nil, errors.New("custom link id is exist")
+	}
+
+	link.LinkId = linkRequest.CustomLinkId
+	link.Clicked = 0
+	link.CreatedAt = time.Now().UTC()
+
+	if s.linkRepo.Create(link) != nil {
+		return nil, errors.New("can't create link")
+	}
+
+	return &LinkResponse{
+		Url:     link.Url,
+		LinkId:  link.LinkId,
+		Clicked: link.Clicked,
+	}, nil
 }
 
-func (s linkService) GetLinkById(string) (*LinkResponse, error) {
-	return nil, nil
+func (s linkService) GetLinkById(linkId string) (*LinkResponse, error) {
+	link, err := s.linkRepo.GetById(linkId)
+	if err != nil {
+		return nil, errors.New("can't get link right now")
+	}
+
+	if link == nil {
+		return nil, errors.New("link not found")
+	}
+
+	linkResponse := &LinkResponse{
+		Url:     link.Url,
+		LinkId:  link.LinkId,
+		Clicked: link.Clicked,
+	}
+
+	return linkResponse, nil
 }
 
-func (s linkService) ResloveLink(string) (*LinkResponse, error) {
-	return nil, nil
+func (s linkService) ResloveLink(linkId string) (*LinkResponse, error) {
+	link, err := s.linkRepo.GetById(linkId)
+	if err != nil {
+		return nil, errors.New("can't get link right now")
+	}
+
+	if link == nil {
+		return nil, errors.New("link not found")
+	}
+
+	link.Clicked += 1
+
+	if s.linkRepo.Update(*link) != nil {
+		return nil, errors.New("can't get link right now")
+	}
+
+	linkResponse := &LinkResponse{
+		Url:     link.Url,
+		LinkId:  link.LinkId,
+		Clicked: link.Clicked,
+	}
+
+	return linkResponse, nil
 }
 
 func (s linkService) GetLinks() ([]LinkResponse, error) {
-	return nil, nil
+	links, err := s.linkRepo.GetAll()
+	if err != nil {
+		return nil, errors.New("can't get links right now")
+	}
+
+	linkResponses := []LinkResponse{}
+
+	for _, link := range links {
+		linkResponse := LinkResponse{
+			Url:     link.Url,
+			LinkId:  link.LinkId,
+			Clicked: link.Clicked,
+		}
+		linkResponses = append(linkResponses, linkResponse)
+	}
+
+	return linkResponses, nil
 }

@@ -1,12 +1,15 @@
 package repositories
 
+import "time"
+
 //Type: generated/custom
 
 type Link struct {
-	LinkId  string `json:"linkId"`
-	Url     string `json:"url"`
-	Clicked int    `json:"clicked"`
-	Type    string `json:"type"`
+	LinkId    string    `json:"linkId" firestore:"linkId"`
+	Url       string    `json:"url" firestore:"url"`
+	Clicked   int       `json:"clicked" firestore:"clicked"`
+	Type      string    `json:"type" firestore:"type"`
+	CreatedAt time.Time `json:"createdAt" firestore:"createdAt"`
 }
 
 type LinkRepository interface {
