@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 	"github.com/thitiph0n/go-url-shortener/handlers"
 	"github.com/thitiph0n/go-url-shortener/repositories"
 	"github.com/thitiph0n/go-url-shortener/services"
@@ -15,7 +17,13 @@ import (
 
 func main() {
 
+	err := godotenv.Load("./config/.env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	firestoreClient := initFirestore()
+	defer firestoreClient.Close()
 
 	linkRepo := repositories.NewLinkRepositoryFirestore(firestoreClient)
 	linkService := services.NewLinkService(linkRepo)
@@ -27,8 +35,8 @@ func main() {
 	app.Post("/links", linkHandler.CreateLink)
 	app.Get("/reslove/:linkId", linkHandler.ResloveLink)
 
-	if err := app.Listen(":5000"); err != nil {
-		log.Panic(err)
+	if err := app.Listen(os.Getenv("APP_PORT")); err != nil {
+		log.Fatal(err)
 	}
 
 }
