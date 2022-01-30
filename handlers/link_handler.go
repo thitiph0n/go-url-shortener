@@ -17,7 +17,7 @@ func (h linkHandler) CreateLink(c *fiber.Ctx) error {
 
 	linkRequest := services.NewLinkRequest{}
 
-	if err := c.BodyParser(linkRequest); err != nil {
+	if err := c.BodyParser(&linkRequest); err != nil {
 		return err
 	}
 

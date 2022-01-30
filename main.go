@@ -32,7 +32,9 @@ func main() {
 	linkService := services.NewLinkService(linkRepo)
 	linkHandler := handlers.NewLinkHandler(linkService)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: handlers.HandleError,
+	})
 
 	app.Use(logger.New())
 	app.Use(limiter.New(limiter.Config{
