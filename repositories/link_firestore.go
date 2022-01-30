@@ -41,11 +41,12 @@ func (r *linkRepositoryFirestore) GetById(id string) (*Link, error) {
 
 	doc, err := r.client.Collection("links").Doc(id).Get(context.Background())
 	if err != nil {
-		return nil, err
-	}
 
-	if !doc.Exists() {
-		return nil, nil
+		if err == iterator.Done {
+			return nil, nil
+		}
+
+		return nil, err
 	}
 
 	var link Link
@@ -58,11 +59,11 @@ func (r *linkRepositoryFirestore) GetByUrl(url string) (*Link, error) {
 
 	doc, err := r.client.Collection("links").Where("url", "==", url).Limit(1).Documents(context.Background()).Next()
 	if err != nil {
-		return nil, err
-	}
+		if err == iterator.Done {
+			return nil, nil
+		}
 
-	if !doc.Exists() {
-		return nil, nil
+		return nil, err
 	}
 
 	var link Link
