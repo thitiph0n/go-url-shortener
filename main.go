@@ -24,10 +24,12 @@ func main() {
 		log.Print(".env file not found")
 	}
 
-	firestoreClient := initFirestore()
+	ctx := context.Background()
+
+	firestoreClient := initFirestore(ctx)
 	defer firestoreClient.Close()
 
-	linkRepo := repositories.NewLinkRepositoryFirestore(firestoreClient)
+	linkRepo := repositories.NewLinkRepositoryFirestore(ctx, firestoreClient)
 	linkService := services.NewLinkService(linkRepo)
 	linkHandler := handlers.NewLinkHandler(linkService)
 
@@ -56,8 +58,7 @@ func main() {
 
 }
 
-func initFirestore() *firestore.Client {
-	ctx := context.Background()
+func initFirestore(ctx context.Context) *firestore.Client {
 	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)

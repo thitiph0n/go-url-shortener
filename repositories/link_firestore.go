@@ -9,16 +9,17 @@ import (
 
 type linkRepositoryFirestore struct {
 	client *firestore.Client
+	ctx    context.Context
 }
 
-func NewLinkRepositoryFirestore(client *firestore.Client) LinkRepository {
-	return &linkRepositoryFirestore{client}
+func NewLinkRepositoryFirestore(ctx context.Context, client *firestore.Client) LinkRepository {
+	return &linkRepositoryFirestore{client, ctx}
 }
 
 func (r *linkRepositoryFirestore) GetAll() ([]Link, error) {
 	links := []Link{}
 
-	iter := r.client.Collection("links").Documents(context.Background())
+	iter := r.client.Collection("links").Documents(r.ctx)
 
 	for {
 		doc, err := iter.Next()
@@ -39,7 +40,7 @@ func (r *linkRepositoryFirestore) GetAll() ([]Link, error) {
 
 func (r *linkRepositoryFirestore) GetById(id string) (*Link, error) {
 
-	doc, err := r.client.Collection("links").Doc(id).Get(context.Background())
+	doc, err := r.client.Collection("links").Doc(id).Get(r.ctx)
 	if err != nil {
 
 		if err == iterator.Done {
@@ -57,7 +58,7 @@ func (r *linkRepositoryFirestore) GetById(id string) (*Link, error) {
 
 func (r *linkRepositoryFirestore) GetByUrl(url string) (*Link, error) {
 
-	doc, err := r.client.Collection("links").Where("url", "==", url).Limit(1).Documents(context.Background()).Next()
+	doc, err := r.client.Collection("links").Where("url", "==", url).Limit(1).Documents(r.ctx).Next()
 	if err != nil {
 		if err == iterator.Done {
 			return nil, nil
@@ -74,7 +75,7 @@ func (r *linkRepositoryFirestore) GetByUrl(url string) (*Link, error) {
 
 func (r *linkRepositoryFirestore) Create(link Link) error {
 
-	_, err := r.client.Collection("links").Doc(link.LinkId).Set(context.Background(), link)
+	_, err := r.client.Collection("links").Doc(link.LinkId).Set(r.ctx, link)
 	if err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func (r *linkRepositoryFirestore) Create(link Link) error {
 
 func (r *linkRepositoryFirestore) Update(link Link) error {
 
-	_, err := r.client.Collection("links").Doc(link.LinkId).Set(context.Background(), link)
+	_, err := r.client.Collection("links").Doc(link.LinkId).Set(r.ctx, link)
 	if err != nil {
 		return err
 	}
