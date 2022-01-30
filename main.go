@@ -59,7 +59,8 @@ func main() {
 }
 
 func initFirestore(ctx context.Context) *firestore.Client {
-	app, err := firebase.NewApp(ctx, nil)
+	config := &firebase.Config{ProjectID: "thitiph0n-go-url-shortener"}
+	app, err := firebase.NewApp(ctx, config)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
