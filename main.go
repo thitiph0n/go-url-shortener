@@ -62,7 +62,7 @@ func main() {
 	app.Post("/links", linkHandler.CreateLink)
 	app.Get("/reslove/:linkId", linkHandler.ResloveLink)
 
-	if err := app.Listen(os.Getenv("APP_PORT")); err != nil {
+	if err := app.Listen(":" + os.Getenv("APP_PORT")); err != nil {
 		log.Fatal(err)
 	}
 
