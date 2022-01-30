@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"time"
 
 	"github.com/thitiph0n/go-url-shortener/errs"
@@ -89,6 +90,7 @@ func (s linkService) CreateLink(linkRequest NewLinkRequest) (*LinkResponse, erro
 func (s linkService) GetLinkById(linkId string) (*LinkResponse, error) {
 	link, err := s.linkRepo.GetById(linkId)
 	if err != nil {
+		log.Printf("[Service] GetLinkById: %v", err)
 		return nil, errs.NewUnexpectedError()
 	}
 
@@ -108,6 +110,7 @@ func (s linkService) GetLinkById(linkId string) (*LinkResponse, error) {
 func (s linkService) ResloveLink(linkId string) (*LinkResponse, error) {
 	link, err := s.linkRepo.GetById(linkId)
 	if err != nil {
+		log.Printf("[Service] ResloveLink: %v", err)
 		return nil, errs.NewUnexpectedError()
 	}
 
@@ -133,6 +136,7 @@ func (s linkService) ResloveLink(linkId string) (*LinkResponse, error) {
 func (s linkService) GetLinks() ([]LinkResponse, error) {
 	links, err := s.linkRepo.GetAll()
 	if err != nil {
+		log.Printf("[Service] GetLinks: %v", err)
 		return nil, errs.NewUnexpectedError()
 	}
 
