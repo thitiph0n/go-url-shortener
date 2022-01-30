@@ -9,20 +9,21 @@ import (
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 	"github.com/thitiph0n/go-url-shortener/handlers"
 	"github.com/thitiph0n/go-url-shortener/repositories"
 	"github.com/thitiph0n/go-url-shortener/services"
-	"google.golang.org/api/option"
 )
 
 func main() {
 
 	err := godotenv.Load("./config/.env")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(".env file not found")
 	}
 
 	firestoreClient := initFirestore()
@@ -37,10 +38,23 @@ func main() {
 	})
 
 	app.Use(logger.New())
+
 	app.Use(limiter.New(limiter.Config{
 		Max:               20,
 		Expiration:        30 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
+	}))
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: os.Getenv("APP_ALLOW_ORIGIN"),
+	}))
+
+	app.Use(cache.New(cache.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.Query("refresh") == "true"
+		},
+		Expiration:   1 * time.Minute,
+		CacheControl: true,
 	}))
 
 	app.Get("/links", linkHandler.GetLinks)
@@ -56,10 +70,9 @@ func main() {
 
 func initFirestore() *firestore.Client {
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("./config/thitiph0n-go-url-shortener-e534e5e27489.json")
-	app, err := firebase.NewApp(ctx, nil, sa)
+	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error initializing app: %v\n", err)
 	}
 
 	client, err := app.Firestore(ctx)
