@@ -4,10 +4,13 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/joho/godotenv"
 	"github.com/thitiph0n/go-url-shortener/handlers"
 	"github.com/thitiph0n/go-url-shortener/repositories"
@@ -30,6 +33,14 @@ func main() {
 	linkHandler := handlers.NewLinkHandler(linkService)
 
 	app := fiber.New()
+
+	app.Use(logger.New())
+	app.Use(limiter.New(limiter.Config{
+		Max:               20,
+		Expiration:        30 * time.Second,
+		LimiterMiddleware: limiter.SlidingWindow{},
+	}))
+
 	app.Get("/links", linkHandler.GetLinks)
 	app.Get("/links/:linkId", linkHandler.GetLinkById)
 	app.Post("/links", linkHandler.CreateLink)
