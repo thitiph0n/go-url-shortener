@@ -8,7 +8,7 @@ RUN apk add --no-cache ca-certificates
 RUN go mod download
 RUN go build -ldflags="-w -s" .
 
-FROM scratch
+FROM gcr.io/distroless/base-debian10
 
 WORKDIR /app
 
