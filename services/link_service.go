@@ -2,6 +2,8 @@ package services
 
 import (
 	"log"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/thitiph0n/go-url-shortener/errs"
@@ -20,12 +22,25 @@ func NewLinkService(linkRepo repositories.LinkRepository) LinkService {
 func (s linkService) CreateLink(linkRequest NewLinkRequest) (*LinkResponse, error) {
 
 	// check is valid url
+	if strings.TrimSpace(linkRequest.Url) == "" {
+		return nil, errs.NewBadRequestError("invalid url")
+	}
+
 	if !helpers.CheckDomainError(linkRequest.Url) {
 		return nil, errs.NewBadRequestError("invalid url")
 	}
 
+	//Enforce Http
+	rawUrl := helpers.EnforceHttp(linkRequest.Url)
+
+	//validate raw url
+	validUrl, err := url.ParseRequestURI(rawUrl)
+	if err != nil {
+		return nil, errs.NewBadRequestError("invalid url")
+	}
+
 	// check is link exist
-	exist, err := s.linkRepo.GetByUrl(linkRequest.Url)
+	exist, err := s.linkRepo.GetByUrl(validUrl.String())
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +55,7 @@ func (s linkService) CreateLink(linkRequest NewLinkRequest) (*LinkResponse, erro
 
 	link := repositories.Link{}
 
-	link.Url = linkRequest.Url
+	link.Url = validUrl.String()
 
 	// check type of link
 	if linkRequest.CustomLinkId == "" {

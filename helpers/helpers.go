@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 func EnforceHttp(url string) string {
@@ -29,6 +30,8 @@ func CheckDomainError(url string) bool {
 }
 
 func GenerateLinkId(length int) string {
+	rand.Seed(time.Now().UnixNano())
+
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	b := make([]byte, length)

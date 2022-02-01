@@ -72,7 +72,7 @@ func (r *linkRepositoryFirestore) GetByUrl(url string) (*Link, error) {
 	var link Link
 	doc.DataTo(&link)
 
-	return nil, nil
+	return &link, nil
 }
 
 func (r *linkRepositoryFirestore) Create(link Link) error {
