@@ -5,6 +5,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type linkRepositoryFirestore struct {
@@ -43,7 +45,7 @@ func (r *linkRepositoryFirestore) GetById(id string) (*Link, error) {
 	doc, err := r.client.Collection("links").Doc(id).Get(r.ctx)
 	if err != nil {
 
-		if err == iterator.Done {
+		if status.Code(err) == codes.NotFound {
 			return nil, nil
 		}
 

@@ -63,7 +63,7 @@ func (s linkService) CreateLink(linkRequest NewLinkRequest) (*LinkResponse, erro
 	link.Type = Custom.String()
 
 	// check custom link is valid
-	if len(linkRequest.CustomLinkId) > 8 {
+	if len(linkRequest.CustomLinkId) > 32 {
 		return nil, errs.NewBadRequestError("invalid custom linkId")
 	}
 

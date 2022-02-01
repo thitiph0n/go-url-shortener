@@ -16,7 +16,7 @@ func EnforceHttp(url string) string {
 
 func CheckDomainError(url string) bool {
 
-	if url == os.Getenv("DOMAIN") {
+	if url == os.Getenv("APP_FRONTEND_DOMAIN") {
 		return false
 	}
 
@@ -25,7 +25,7 @@ func CheckDomainError(url string) bool {
 	newUrl = strings.Replace(newUrl, "www.", "", 1)
 	newUrl = strings.Split(newUrl, "/")[0]
 
-	return newUrl != os.Getenv("DOMAIN")
+	return newUrl != os.Getenv("APP_FRONTEND_DOMAIN")
 }
 
 func GenerateLinkId(length int) string {
